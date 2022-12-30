@@ -21,12 +21,13 @@ The demo is using the Azure SQL Trigger and Bindings for Function app to capture
 ![Near real-time indexing for Azure SQL Database](media/s2.png)
 
 Components:
-1. Azure SQL Database, which simulates customer data that needs real-time indexing.
+1. Azure SQL Database, ItemDB which simulates customer data that needs real-time indexing.
 1. Azure Function App, contains two functions:
-    1. SQL-to-SB function that tracks changes in SQL DB and sends to the RTSData topic in Service Bus.
-    1. SB-to-ACS function that takes the queued data changes and pushes them to Cognitive Search.
+    1. SQL-to-SB function that tracks changes in SQL DB (ItemDB) and queues them to the RTSData topic in Service Bus.
+    1. SB-to-ACS function that takes the queued data changes and pushes them to Cognitive Search RTS index.
 1. Azure Service Bus, is used for queuing changes to decouple the processing of changes from the source system.
-1. Azure Cognitive Search provides the search capability for the SQL DB data.
+1. Azure Cognitive Search provides the search capability for the SQL DB (ItemDB) data.
+1. Azure Key Vault stores the ItemDB connection string and the Cognitive Search Admin API Key.
 
 ### Demo Setup
 TBD
