@@ -31,7 +31,7 @@ resource kv 'Microsoft.KeyVault/vaults@2021-11-01-preview' = {
     enabledForDeployment: enabledForDeployment
     enabledForDiskEncryption: enabledForDiskEncryption
     enabledForTemplateDeployment: enabledForTemplateDeployment
-    enableRbacAuthorization: false
+    enableRbacAuthorization: true
     tenantId: tenantId
     accessPolicies: []
     sku: {
@@ -44,5 +44,6 @@ resource kv 'Microsoft.KeyVault/vaults@2021-11-01-preview' = {
     }
   }
 }
+
 
 output keyVaultName string = kv.name

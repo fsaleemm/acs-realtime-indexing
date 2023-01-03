@@ -38,13 +38,14 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2021-08-01' = {
   kind: 'StorageV2'
 }
 
+// SQL Triggers for functions is supported in Premium Plans, thus using P1v2 sku.
 resource hostingPlan 'Microsoft.Web/serverfarms@2021-03-01' = {
   name: hostingPlanName
   location: location
   sku: {
-    name: 'B1'
-    tier: 'Basic'
-    size: 'B1'
+    name: 'P1v2'
+    tier: 'PremiumV2'
+    size: 'P1v2'
   }
   properties: {}
 }
@@ -97,10 +98,6 @@ resource functionApp 'Microsoft.Web/sites@2021-03-01' = {
         {
           name: 'FUNCTIONS_WORKER_RUNTIME'
           value: functionWorkerRuntime
-        }
-        {
-          name: 'WEBSITE_RUN_FROM_PACKAGE'
-          value: '1'
         }
       ]
       ftpsState: 'FtpsOnly'

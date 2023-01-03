@@ -1,5 +1,5 @@
-@description('The name of the Function App instance')
-param functionAppName string
+/* @description('The name of the Function App instance')
+param functionAppName string */
 
 @description('The name of the Key Vault')
 param keyVaultName string
@@ -17,9 +17,9 @@ param administratorLogin string
 @secure()
 param administratorLoginPassword string
 
-resource functionAppInstance 'Microsoft.Web/sites@2021-03-01' existing = {
+/* resource functionAppInstance 'Microsoft.Web/sites@2021-03-01' existing = {
   name: functionAppName
-}
+} */
 
 resource keyVaultInstance 'Microsoft.KeyVault/vaults@2021-11-01-preview' existing = {
   name: keyVaultName
@@ -29,10 +29,10 @@ resource searchServiceInstance 'Microsoft.Search/searchServices@2020-08-01' exis
   name: searchServicveName
 }
 
-var sqlConnString  = 'Server=tcp:${sqlServerFQDN}},1433;Initial Catalog=ItemDB;Persist Security Info=False;User ID=${administratorLogin};Password=${administratorLoginPassword};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;'
+var sqlConnString  = 'Server=tcp:${sqlServerFQDN},1433;Initial Catalog=ItemDB;Persist Security Info=False;User ID=${administratorLogin};Password=${administratorLoginPassword};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;'
 
 // Add KV Access Policy
-resource AppServiceAccessPolicy 'Microsoft.KeyVault/vaults/accessPolicies@2021-11-01-preview' = {
+/* resource AppServiceAccessPolicy 'Microsoft.KeyVault/vaults/accessPolicies@2021-11-01-preview' = {
   name: 'add'
   parent: keyVaultInstance
   properties: {
@@ -48,7 +48,7 @@ resource AppServiceAccessPolicy 'Microsoft.KeyVault/vaults/accessPolicies@2021-1
       }
     ]
   }
-}
+} */
 
 
 resource SearchAdminKey 'Microsoft.KeyVault/vaults/secrets@2021-11-01-preview' = {

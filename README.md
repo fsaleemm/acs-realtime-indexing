@@ -30,7 +30,52 @@ Components:
 1. Azure Key Vault stores the ItemDB connection string and the Cognitive Search Admin API Key.
 
 ### Demo Setup
-TBD
+
+Login to your Azure in your terminal.
+
+```bash
+az login
+```
+
+To check your subscription.
+
+```bash
+az account show
+```
+
+Run the deployment. The deployment will create the resource group "rg-\<Name suffix for resources\>". Make sure you are in the 'acs-realtime-indexing' directory.
+
+```bash
+git clone https://github.com/fsaleemm/acs-realtime-indexing.git
+
+cd acs-realtime-indexing
+
+az deployment sub create --name "<unique deployment name>" --location "<Your Chosen Location>" --template-file infra/main.bicep --parameters name="<Name suffix for resources>"
+```
+
+When promptd, enter SQL Admin account name and the SQL admin password to setup SQL authentication.
+
+The following deployments will run:
+
+![deployment times](media/s3.png)
+
+#### Create "rts" Search Index
+
+Create an index named "rts" with the following fields in the index schema.
+
+1. id
+1. title
+1. summary
+1. IsDeleted
+
+In the search service Overview page, Add index, an embedded editor for specifying an index schema wll open.
+
+Set Index name: "rts"
+
+![Index Setup](/media/s4.png)
+
+#### Create Item table in ItemDB
+
 
 ### Demo Capability
 TBD

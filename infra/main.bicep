@@ -54,8 +54,6 @@ module servicebus './modules/service-bus.bicep' = {
   }
 }
 
-
-
 module function './modules/function.bicep' = {
   name: '${rg.name}-function'
   scope: rg
@@ -75,16 +73,18 @@ module keyvault './modules/keyvault.bicep' = {
   }
 }
 
-module roleAssignmentFcuntionSB './modules/configure/roleAssign-function-service-bus.bicep' = {
+module roleAssignmentFcuntionSB './modules/configure/roleAssign-function-SB-KV.bicep' = {
   name: '${rg.name}-roleAssignmentFunctionSB'
   scope: rg
   params: {
     functionAppName: function.outputs.functionAppName
     sbNameSpace: servicebus.outputs.sbNameSpace
+    keyVaultName: keyvault.outputs.keyVaultName
   }
   dependsOn: [
     function
     servicebus
+    keyvault
   ]
 }
 
@@ -105,12 +105,10 @@ module configurFunctionAppSettings './modules/configure/configure-function.bicep
   ]
 }
 
-
 module configurKeyVault './modules/configure/configure-key-vault.bicep' = {
   name: '${rg.name}-configureKV'
   scope: rg
   params: {
-    functionAppName: function.outputs.functionAppName
     searchServicveName: acsearch.outputs.searchServiceName
     keyVaultName: keyvault.outputs.keyVaultName
     sqlServerFQDN: sql.outputs.SqlServerNameFQDN
@@ -118,7 +116,6 @@ module configurKeyVault './modules/configure/configure-key-vault.bicep' = {
     administratorLoginPassword: administratorLoginPassword
   }
   dependsOn: [
-    function
     acsearch
     keyvault
     sql
@@ -135,4 +132,4 @@ module configurServiceBus './modules/configure/configure-service-bus.bicep' = {
     servicebus
   ] 
 }
-//output apimServideBusOperation string = '${apim.outputs.apimEndpoint}/sb-operations/'
+

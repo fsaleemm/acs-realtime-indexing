@@ -21,7 +21,7 @@ var customAppSettings = {
   SearchServiceEndPoint: searchServicveUrl
   SearchAdminAPIKey: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=SearchAdminAPIKey)'
   IndexName: 'rts'
-  SBConnectionString__fullyQualifiedNamespace: sbHostName
+  servicebusconnection__fullyQualifiedNamespace: sbHostName
   SqlConnectionString: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=SqlConnectionString)'
 }
 

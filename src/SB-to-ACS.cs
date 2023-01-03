@@ -51,7 +51,14 @@ namespace RTIndexing
                 {
                     var docToIndex = JsonSerializer.Deserialize<Item>(m.Body.ToString());
 
-                    acsBatch.Actions.Add(IndexDocumentsAction.MergeOrUpload(docToIndex));
+                    if ( docToIndex.IsDeleted )
+                    {
+                        acsBatch.Actions.Add(IndexDocumentsAction.Delete(docToIndex));
+                    }
+                    else
+                    {
+                        acsBatch.Actions.Add(IndexDocumentsAction.MergeOrUpload(docToIndex));
+                    }
                 }
 
                 IndexDocumentsResult result = searchClient.IndexDocuments(acsBatch);

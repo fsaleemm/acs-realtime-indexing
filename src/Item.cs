@@ -25,6 +25,8 @@ namespace RTIndexing.Models
         [JsonPropertyName("summary")]
         public string Summary { get; set; }
 
+        public bool IsDeleted { get; set; }
+
 
     }
 }
