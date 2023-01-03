@@ -14,69 +14,136 @@ The data flow is as follows:
 1. A function is triggered when items are queues into the Service Bus topic, and it uses the Cognitive Search SDK to push the changes to the search index.
 1. Applications can search for the most updated data.
 
-## Using this patter with Azure SQL Database
+## Benefits of this Architecture
 
-The demo is using the Azure SQL Trigger and Bindings for Function app to capture data changes and queue them for indexing in Cognitive Search.
+Below are benefits and potential extension scenarios for this architecture.
+
+1. Integrate backend systems using message broker to decouple services for scalability and reliability. 
+1. Allows work to be queued when backend systems are unavailable.
+1. Provide load leveling to handle bursts in workloads and broadcast messages to multiple consumers.
+
+In the above architecture, Azure Function App processes the messages by simply indexing the data with Azure Cognitive Search. 
+Other potential extensions of this architecture are:
+
+1. The function can be converted to a durable function that orchestrates normalization and correlation of data prior to indexing in Cognitive Search.
+1. Instead of a Function App, other consumers can process the messages in Service Bus. Services such as Logic Apps to orchestrate workflows, or Microservices running in Container Apps/AKS to process the workload.
+1. An Azure EventGrid could be integrated with Service Bus for cost optimization in cases where rate of SQL database data changes is small or changes occur in bursts.
+1. The Service bus could be replaced by other queueing technology such as EventHub and EventGrid.
+
+## Using this pattern with Azure SQL Database
+
+The demo is using the [Azure SQL Trigger and Bindings](https://learn.microsoft.com/en-us/azure/azure-functions/functions-bindings-service-bus-trigger?tabs=in-process%2Cextensionv5&pivots=programming-language-csharp) for Function app to capture data changes and queue them for indexing in Cognitive Search. At the time of creating this demo, the SQL triggers for Azure function are in preview and as such the functionality may change when this feature becomes GA.
 
 ![Near real-time indexing for Azure SQL Database](media/s2.png)
 
 Components:
-1. Azure SQL Database, ItemDB which simulates customer data that needs real-time indexing.
-1. Azure Function App, contains two functions:
+1. [Azure SQL Database](https://learn.microsoft.com/en-us/azure/azure-sql/database/sql-database-paas-overview?view=azuresql), ItemDB which simulates customer data that needs real-time indexing.
+1. [Azure Function App](https://learn.microsoft.com/en-us/azure/azure-functions/functions-overview), contains two functions:
     1. SQL-to-SB function that tracks changes in SQL DB (ItemDB) and queues them to the RTSData topic in Service Bus.
     1. SB-to-ACS function that takes the queued data changes and pushes them to Cognitive Search RTS index.
-1. Azure Service Bus, is used for queuing changes to decouple the processing of changes from the source system.
-1. Azure Cognitive Search provides the search capability for the SQL DB (ItemDB) data.
-1. Azure Key Vault stores the ItemDB connection string and the Cognitive Search Admin API Key.
+1. [Azure Service Bus](https://learn.microsoft.com/en-us/azure/service-bus-messaging/service-bus-messaging-overview), is used for queuing changes to decouple the processing of changes from the source system.
+1. [Azure Cognitive Search](https://learn.microsoft.com/en-us/azure/search/search-what-is-azure-search) provides the search capability for the SQL DB (ItemDB) data.
+1. [Azure Key Vault](https://learn.microsoft.com/en-us/azure/key-vault/general/overview) stores the ItemDB connection string and the Cognitive Search Admin API Key.
 
 ### Demo Setup
 
-Login to your Azure in your terminal.
+1. Login to your Azure in your terminal.
 
-```bash
-az login
-```
+    ```bash
+    az login
+    ```
 
-To check your subscription.
+1. To check your subscription.
 
-```bash
-az account show
-```
+    ```bash
+    az account show
+    ```
 
-Run the deployment. The deployment will create the resource group "rg-\<Name suffix for resources\>". Make sure you are in the 'acs-realtime-indexing' directory.
+1. Run the deployment. The deployment will create the resource group "rg-\<Name suffix for resources\>". Make sure you are in the 'acs-realtime-indexing' directory.
 
-```bash
-git clone https://github.com/fsaleemm/acs-realtime-indexing.git
+    ```bash
+    git clone https://github.com/fsaleemm/acs-realtime-indexing.git
 
-cd acs-realtime-indexing
+    cd acs-realtime-indexing
 
-az deployment sub create --name "<unique deployment name>" --location "<Your Chosen Location>" --template-file infra/main.bicep --parameters name="<Name suffix for resources>"
-```
+    az deployment sub create --name "<unique deployment name>" --location "<Your Chosen Location>" --template-file infra/main.bicep --parameters name="<Name suffix for resources>"
+    ```
 
-When promptd, enter SQL Admin account name and the SQL admin password to setup SQL authentication.
+1. When prompted, enter SQL Admin account name and the SQL admin password to setup SQL authentication.
 
-The following deployments will run:
+    ![Index Setup](/media/s5.png)
 
-![deployment times](media/s3.png)
+    The following deployments will run:
 
-#### Create "rts" Search Index
+    ![deployment times](media/s3.png)
+
+### Create "rts" Search Index
 
 Create an index named "rts" with the following fields in the index schema.
+* id
+* title
+* summary
+* IsDeleted
 
-1. id
-1. title
-1. summary
-1. IsDeleted
+Steps:
+1. In the search service Overview page, Add index, an embedded editor for specifying an index schema will open.
+1. Set Index name: "rts"
 
-In the search service Overview page, Add index, an embedded editor for specifying an index schema wll open.
+    ![Index Setup](/media/s4.png)
 
-Set Index name: "rts"
+### Create Item table in ItemDB
 
-![Index Setup](/media/s4.png)
+1. Login to the Azure SQL Database (ItemDB) using [Azure Data Studio](https://learn.microsoft.com/en-us/sql/azure-data-studio/download-azure-data-studio?view=sql-server-ver16). You will have to [add your IP to the SQL Server firewall rules.](https://learn.microsoft.com/en-us/azure/azure-sql/database/secure-database-tutorial?view=azuresql#set-up-server-level-firewall-rules)
 
-#### Create Item table in ItemDB
+    Use below connection details:
+    ![Index Setup](/media/s6.png)
 
+1. Create Item Table
+    ```sql
+    CREATE TABLE dbo.Item (
+        [id] UNIQUEIDENTIFIER PRIMARY KEY,
+        [title] NVARCHAR(200) NOT NULL,
+        [summary] NVARCHAR(200) NOT NULL,
+        [IsDeleted] BIT NOT NULL
+    );
+    ```
+
+1. Enable change tracking on ItemDB database and Item table.
+    ```sql
+    ALTER DATABASE [ItemDB]
+    SET CHANGE_TRACKING = ON
+    (CHANGE_RETENTION = 2 DAYS, AUTO_CLEANUP = ON);
+
+    ALTER TABLE [dbo].[Item]
+    ENABLE CHANGE_TRACKING;
+    ```
 
 ### Demo Capability
-TBD
+
+1. Add records to the Item table, and they should appear in search results.
+
+    ```sql
+    insert into Item (id, title, summary, IsDeleted) VALUES (NEWID(), 'db title 1', 'db summary 1', 0)
+    insert into Item (id, title, summary, IsDeleted) VALUES (NEWID(), 'db title 2', 'db summary 2', 0)
+    ```
+
+    ![Index Setup](/media/s7.png)
+
+1. Update a record in the Item table, and changes should be reflected in search results.
+
+    ```sql
+    UPDATE Item set title='title 1 updated' where id='<GUID of Document with db title 1>'
+    ```
+
+    ![Index Setup](/media/s8.png)
+
+1. Mark as deleted (soft delete) record in Item table, and it should be removed from index.
+
+    ```sql
+    UPDATE Item set IsDeleted=1 where id='<GUID of Document with title 1 updated>'
+    ```
+
+    ![Index Setup](/media/s9.png)
+
+    Search result with "title 1 updated" is removed.
 
