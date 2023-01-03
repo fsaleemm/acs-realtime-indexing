@@ -11,7 +11,7 @@ param keyVaultName string
 param sbHostName string
 
 param repositoryUrl string = 'https://github.com/fsaleemm/acs-realtime-indexing.git'
-param branch string = 'feature/deploy'
+param branch string = 'main'
 
 resource functionAppInstance 'Microsoft.Web/sites@2021-03-01' existing = {
   name: functionAppName
